@@ -2,6 +2,7 @@ from mvector.utils.utils import dict_to_object
 from ruamel import yaml
 
 from loadTXT import loadTXT
+from speedTest import speedTest
 from train import train
 from summary import modelSummary
 
@@ -17,4 +18,6 @@ if __name__ == "__main__":
         train(config=config.train)
     if config.start.summary:
         modelSummary(config=config.summary)
+    if config.start.speed:
+        speedTest(config=config.speed)
     pass

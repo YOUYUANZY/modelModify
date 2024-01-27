@@ -3,12 +3,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 from torchsummary import summary
 
-from Attention.ANN import APNB, AFNB
-from Attention.CBAM import CBAM
-from Attention.GCNet import GCNet
-from Attention.SE import SE
 from Attention.Triplet import Triplet
-from Attention.scSE import scSE
 from nets.mobilenet import MobileNetV1
 
 

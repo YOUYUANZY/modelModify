@@ -4,13 +4,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
-
+from torch.cuda.amp import autocast
 from utils.utils import get_lr
 
 
 def epochTrain(modelType, model_train, model, loss_history, loss, optimizer, epoch, epoch_step, epoch_step_val, gen,
                gen_val,
-               endEpoch, Batch_size, fp16, scaler, save_period, save_dir, flag):
+               endEpoch, Batch_size, scaler, save_period, save_dir, flag):
     # 三元损失
     total_triple_loss = 0
     # 交叉熵损失
@@ -37,7 +37,7 @@ def epochTrain(modelType, model_train, model, loss_history, loss, optimizer, epo
             labels = labels.cuda(flag)
         # 梯度归零
         optimizer.zero_grad()
-        if not fp16:
+        with autocast():
             if modelType == 'facenet':
                 outputs1, outputs = model_train(images, "train")
                 _triplet_loss = loss(outputs1, Batch_size)
@@ -49,29 +49,11 @@ def epochTrain(modelType, model_train, model, loss_history, loss, optimizer, epo
                 _loss = _CE_loss
             else:
                 raise ValueError('modelType unsupported')
-            # 反向传播
-            _loss.backward()
-            # 参数优化
-            optimizer.step()
-        else:
-            from torch.cuda.amp import autocast
-            with autocast():
-                if modelType == 'facenet':
-                    outputs1, outputs = model_train(images, "train")
-                    _triplet_loss = loss(outputs1, Batch_size)
-                    _CE_loss = nn.NLLLoss()(F.log_softmax(outputs, dim=-1), labels)
-                    _loss = _triplet_loss + _CE_loss
-                elif modelType == 'arcface':
-                    outputs = model_train(images, labels, mode="train")
-                    _CE_loss = nn.NLLLoss()(F.log_softmax(outputs, -1), labels)
-                    _loss = _CE_loss
-                else:
-                    raise ValueError('modelType unsupported')
-            # 反向传播
-            scaler.scale(_loss).backward()
-            # 参数优化
-            scaler.step(optimizer)
-            scaler.update()
+        # 反向传播
+        scaler.scale(_loss).backward()
+        # 参数优化
+        scaler.step(optimizer)
+        scaler.update()
 
         with torch.no_grad():
             accuracy = torch.mean((torch.argmax(F.softmax(outputs, dim=-1), dim=-1) == labels).type(torch.FloatTensor))

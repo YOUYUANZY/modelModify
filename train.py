@@ -3,7 +3,7 @@ import torch
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-
+from torch.cuda.amp import GradScaler as GradScaler
 from nets.arcface import Arcface
 from nets.facenet import Facenet
 from utils.dataloader import FacenetDataset, face_dataset_collate, arcFaceDataset, arc_dataset_collate
@@ -63,11 +63,7 @@ def train(config):
     else:
         loss_history = None
     # torch 1.2不支持amp，建议使用torch 1.7.1及以上正确使用fp16
-    if config.fp16:
-        from torch.cuda.amp import GradScaler as GradScaler
-        scaler = GradScaler()
-    else:
-        scaler = None
+    scaler = GradScaler()
     # 启用模型训练
     model_train = model.train()
     model_train = torch.nn.DataParallel(model)
@@ -132,7 +128,7 @@ def train(config):
         set_lr(optimizer, lr_func, epoch)
         epochTrain(config.model, model_train, model, loss_history, loss, optimizer, epoch, epoch_step, epoch_step_val,
                    gen, gen_val, config.endEpoch, config.batchSize // 3,
-                   config.fp16, scaler, config.savePeriod, 'logs', flag)
+                   scaler, config.savePeriod, 'logs', flag)
     # 训练结束
     if flag == 0:
         loss_history.writer.close()

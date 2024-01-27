@@ -1,8 +1,17 @@
 #开始参数
 start:
-  reloadData: true #重新加载数据集
-  startTrain: true #开始训练
+  reloadData: false #重新加载数据集
+  startTrain: false #开始训练
   summary: false
+  speed: true
+
+speed:
+  model: facenet
+  backbone: mobilenet
+  attention:
+  inputSize: [224,224,3]
+  dataPath: orl
+  dataType: pgm
 
 summary:
   model: arcface
@@ -21,7 +30,6 @@ dataset:
 
 #人脸识别训练参数
 train:
-  fp16: true #混合精度(少显存)
   dataPath: train_data.txt #数据及标签路径
   inputSize: [224,224,3] #facenet[224,224,3]、arcface[112,112,3]
   model: facenet #facenet、arcface
