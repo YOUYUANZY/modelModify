@@ -80,7 +80,7 @@ def train(config):
     print(
         "num_classes: " + str(num_classes) + "\n" + "num_train: " + str(num_train) + "\n" + "num_val: " + str(num_val))
     # 自适应调整学习率
-    if config.batchSize % 3 != 0:
+    if config.batchSize % 3 != 0 and config.model == 'facenet':
         raise ValueError("Batch_size must be the multiple of 3.")
     maxLR = min(max(config.batchSize / config.nbs * config.maxLR, config.minLimitLR), config.maxLimitLR)
     minLR = min(max(config.batchSize / config.nbs * config.minLR, config.minLimitLR * 1e-2),

@@ -4,7 +4,7 @@ from torch.nn import functional as F
 from torchsummary import summary
 
 from Attention.Triplet import Triplet
-from nets.mobilenet import MobileNetV1
+from nets.mobilenet_v1 import MobileNetV1
 
 
 class mobilenet(nn.Module):
