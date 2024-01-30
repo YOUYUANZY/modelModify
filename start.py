@@ -1,6 +1,7 @@
 from mvector.utils.utils import dict_to_object
 from ruamel import yaml
 
+from eval_LFW import evalLFW
 from loadTXT import loadTXT
 from speedTest import speedTest
 from train import train
@@ -20,4 +21,6 @@ if __name__ == "__main__":
         modelSummary(config=config.summary)
     if config.start.speed:
         speedTest(config=config.speed)
+    if config.start.evalLFW:
+        evalLFW(config=config.LFW)
     pass

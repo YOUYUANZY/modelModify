@@ -1,5 +1,8 @@
+import torch
 import torch.nn as nn
 import math
+
+from torchsummary import summary
 
 
 def conv_bn(inp, oup, stride):
@@ -127,19 +130,9 @@ class MobileNetV2(nn.Module):
                 m.bias.data.zero_()
 
 
-def mobilenet_v2(pretrained=True):
-    model = MobileNetV2(width_mult=1)
-
-    if pretrained:
-        try:
-            from torch.hub import load_state_dict_from_url
-        except ImportError:
-            from torch.utils.model_zoo import load_url as load_state_dict_from_url
-        state_dict = load_state_dict_from_url(
-            'https://www.dropbox.com/s/47tyzpofuuyyv1b/mobilenetv2_1.0-f2a8633.pth.tar?dl=1', progress=True)
-        model.load_state_dict(state_dict)
-    return model
-
-
 if __name__ == '__main__':
-    net = mobilenet_v2(True)
+    FR = MobileNetV2()
+    device = torch.device('cuda:0')
+    FR = FR.to(device)
+    FR.cuda()
+    summary(FR, (3, 224, 224))

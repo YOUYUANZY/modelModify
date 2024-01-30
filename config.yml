@@ -1,16 +1,29 @@
 #开始参数
 start:
-  reloadData: true #重新加载数据集
-  startTrain: true #开始训练
+  reloadData: false #重新加载数据集
+  startTrain: false #开始训练
   summary: false
   speed: false
+  evalLFW: true
+
+LFW:
+  model: facenet
+  backbone: mobilenet
+  attention:
+  inputSize: [224,224,3]
+  weightPath: logs/facenet_orl_adam/100-l0.209-vl0.278.pth
+  dirPath: lfw
+  pairPath: lfwEvalInfo/lfw_pair.txt
+  batchSize: 256
+  logInterval: 1
+  pngPath: lfwEvalInfo/roc_test.png
 
 speed:
   model: facenet
-  backbone: mobilenet
-  attention: Triplet
+  backbone: mobilenetv2
+  attention:
   inputSize: [224,224,3]
-  weightPath: logs/facenet+Triplet_orl/100-l0.325-vl0.418.pth
+  weightPath: logs/facenet+mobilenetv2_orl_adam/100-l0.066-vl0.134.pth
   dataPath: orl
   dataType: pgm
 
@@ -23,11 +36,11 @@ summary:
 dataset:
   locate: '' #数据集目录
   name: #数据集文件夹名字
-    - casia
-#    - orl
+#    - casia
+    - orl
   type: #数据集数据格式
-    - bmp
-#    - pgm
+#    - bmp
+    - pgm
   minNum: 2 #每个人最少照片数量
   maxNum: 40 #每个人最多照片数量
 
@@ -36,20 +49,20 @@ train:
   dataPath: train_data.txt #数据及标签路径
   inputSize: [224,224,3] #facenet[224,224,3]、arcface[112,112,3]
   model: facenet #facenet、arcface
-  backbone: mobilenet #主干网络 mobilenet(facenet)、mobilefacenet(arcface)
+  backbone: mobilenetv2 #主干网络 mobilenet[v2](facenet)、mobilefacenet(arcface)
   attention:  #注意力机制 Triplet
   onlyAttention: false #只训练注意力
   weightPath: '' #模型权重路径
-  batchSize: 126 #批次大小（faceNet需为3的倍数）
+  batchSize: 30 #批次大小（faceNet需为3的倍数）
   startEpoch: 0 #开始轮次
   endEpoch: 100 #结束轮次
   maxLR: 0.01 #模型最大学习率
-  minLR: 0.0001 #模型最小学习率(常为maxLR*0.01)
+  minLR: 0.00001 #模型最小学习率(常为maxLR*0.01)
 
   #学习率限制（用于自适应调整，防止学习率设置不合理）
   nbs: 64 #参照批次大小
-  maxLimitLR: 0.1 #参照最大学习率adam：0.001，sgd:0.1
-  minLimitLR: 0.0005 #参照最小学习率adam：0.0003，sgd:0.0005
+  maxLimitLR: 0.001 #参照最大学习率adam：0.001，sgd:0.1
+  minLimitLR: 0.0003 #参照最小学习率adam：0.0003，sgd:0.0005
 
   LrDecayType: cos #学习率下降方式 step、cos
   LRscheduler: #学习率下降参数
@@ -63,10 +76,10 @@ train:
     step:
       stepNum: 10 #步降学习率次数
 
-  optimizer: 'sgd' #优化器种类 adam、sgd 建议maxLR:1e-3、le-2
+  optimizer: 'adam' #优化器种类 adam、sgd 建议maxLR:1e-3、le-2
   momentum: 0.9 #优化器内momentum参数
-  weightDecay: 0.0005 #权值衰减（防止过拟合）adam:0、sgd:5e-4
-  savePeriod: 25 #保存训练权重间隔
+  weightDecay: 0 #权值衰减（防止过拟合）adam:0、sgd:5e-4
+  savePeriod: 10 #保存训练权重间隔
   numWorkers: 2 #多线程读取数据
   valRate: 0.1 #验证集比例
 
