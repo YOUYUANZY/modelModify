@@ -3,9 +3,11 @@
 See the paper "Inverted Residuals and Linear Bottlenecks:
 Mobile Networks for Classification, Detection and Segmentation" for more details.
 '''
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import init
+from torchsummary import summary
 
 
 class hswish(nn.Module):
@@ -211,5 +213,13 @@ class MobileNetV3_Large(nn.Module):
         out = self.hs2(self.bn2(self.conv2(out)))
         out = self.gap(out).flatten(1)
         out = self.drop(self.hs3(self.bn3(self.linear3(out))))
+        out = self.linear4(out)
+        return out
 
-        return self.linear4(out)
+
+if __name__ == '__main__':
+    FR = MobileNetV3_Large()
+    device = torch.device('cuda:0')
+    FR = FR.to(device)
+    FR.cuda()
+    summary(FR, (3, 224, 224))

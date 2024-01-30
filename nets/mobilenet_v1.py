@@ -11,6 +11,7 @@ def conv_bn(inp, oup, stride=1):
     )
 
 
+# 深度可分离卷积
 def conv_dw(inp, oup, stride=1):
     return nn.Sequential(
         nn.Conv2d(inp, inp, 3, stride, 1, groups=inp, bias=False),

@@ -1,10 +1,10 @@
 #开始参数
 start:
-  reloadData: false #重新加载数据集
-  startTrain: false #开始训练
+  reloadData: true #重新加载数据集
+  startTrain: true #开始训练
   summary: false
   speed: false
-  evalLFW: true
+  evalLFW: false
 
 LFW:
   model: facenet
@@ -49,7 +49,7 @@ train:
   dataPath: train_data.txt #数据及标签路径
   inputSize: [224,224,3] #facenet[224,224,3]、arcface[112,112,3]
   model: facenet #facenet、arcface
-  backbone: mobilenetv2 #主干网络 mobilenet[v2](facenet)、mobilefacenet(arcface)
+  backbone: mobilenetv3_L #主干网络 mobilenet[v2](facenet)、mobilefacenet(arcface)
   attention:  #注意力机制 Triplet
   onlyAttention: false #只训练注意力
   weightPath: '' #模型权重路径

@@ -21,11 +21,13 @@ def conv_1x1_bn(inp, oup):
     )
 
 
+# 使可除
 def make_divisible(x, divisible_by=8):
     import numpy as np
     return int(np.ceil(x * 1. / divisible_by) * divisible_by)
 
 
+# 倒残差块
 class InvertedResidual(nn.Module):
     def __init__(self, inp, oup, stride, expand_ratio):
         super(InvertedResidual, self).__init__()
@@ -36,6 +38,7 @@ class InvertedResidual(nn.Module):
         self.use_res_connect = self.stride == 1 and inp == oup
 
         if expand_ratio == 1:
+            # 深度可分离卷积
             self.conv = nn.Sequential(
                 # dw
                 nn.Conv2d(hidden_dim, hidden_dim, 3, stride, 1, groups=hidden_dim, bias=False),
@@ -46,6 +49,7 @@ class InvertedResidual(nn.Module):
                 nn.BatchNorm2d(oup),
             )
         else:
+            # 倒残差
             self.conv = nn.Sequential(
                 # pw
                 nn.Conv2d(inp, hidden_dim, 1, 1, 0, bias=False),
