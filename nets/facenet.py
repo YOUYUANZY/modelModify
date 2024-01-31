@@ -4,9 +4,9 @@ from torch.nn import functional as F
 from torchsummary import summary
 from torchvision.models import MobileNetV2
 
-from Attention.Triplet import Triplet
 from nets.mobilefacenet_modify import MobileFaceNet
 from nets.mobilenet_v1 import MobileNetV1
+from nets.mobilenet_v1_modify import MobileNetV1_md
 from nets.mobilenet_v3 import MobileNetV3_Large
 
 
@@ -14,6 +14,20 @@ class mobilenet(nn.Module):
     def __init__(self):
         super(mobilenet, self).__init__()
         self.model = MobileNetV1()
+        del self.model.fc
+        del self.model.avg
+
+    def forward(self, x):
+        x = self.model.stage1(x)
+        x = self.model.stage2(x)
+        x = self.model.stage3(x)
+        return x
+
+
+class mobilenet_(nn.Module):
+    def __init__(self):
+        super(mobilenet_, self).__init__()
+        self.model = MobileNetV1_md()
         del self.model.fc
         del self.model.avg
 
@@ -51,6 +65,7 @@ class mobilenet_v3_L(nn.Module):
         x = self.model.hs2(self.model.bn2(self.model.conv2(x)))
         return x
 
+
 class mobilefacenet(nn.Module):
     def __init__(self):
         super(mobilefacenet, self).__init__()
@@ -83,6 +98,9 @@ class Facenet(nn.Module):
         super(Facenet, self).__init__()
         if backbone == "mobilenet":
             self.backbone = mobilenet()
+            flat_shape = 1024
+        elif backbone == "mobilenet_":
+            self.backbone = mobilenet_()
             flat_shape = 1024
         elif backbone == "mobilenetv2":
             self.backbone = mobilenet_v2()
