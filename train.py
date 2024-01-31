@@ -2,11 +2,11 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
-from torch.utils.data import DataLoader
 from torch.cuda.amp import GradScaler as GradScaler
-from nets.arcface import Arcface
+from torch.utils.data import DataLoader
+
 from nets.facenet import Facenet
-from utils.dataloader import FacenetDataset, face_dataset_collate, arcFaceDataset, arc_dataset_collate
+from utils.dataloader import FacenetDataset, face_dataset_collate
 from utils.epochTrain import epochTrain
 from utils.lossRecord import LossHistory
 from utils.training import get_Lr_Fun, set_lr, triplet_loss
@@ -22,12 +22,7 @@ def train(config):
     # 获取标签数量
     num_classes = get_num_classes(config.dataPath)
     # 加载模型
-    if config.model == 'facenet':
-        model = Facenet(backbone=config.backbone, num_classes=num_classes)
-    elif config.model == 'arcface':
-        model = Arcface(num_classes=num_classes, backbone=config.backbone)
-    else:
-        raise ValueError('model unsupported')
+    model = Facenet(backbone=config.backbone, num_classes=num_classes)
     # 加载权重
     if config.weightPath != '':
         if flag == 0:
@@ -94,20 +89,14 @@ def train(config):
     if epoch_step == 0 or epoch_step_val == 0:
         raise ValueError("数据集过小，无法继续进行训练，请扩充数据集。")
     # 构建数据集加载器
-    if config.model == 'facenet':
-        train_dataset = FacenetDataset(config.inputSize, lines[:num_train], num_classes, random=True)
-        val_dataset = FacenetDataset(config.inputSize, lines[num_train:], num_classes, random=False)
-    elif config.model == 'arcface':
-        train_dataset = arcFaceDataset(config.inputSize, lines[:num_train], random=True)
-        val_dataset = arcFaceDataset(config.inputSize, lines[num_train:], random=False)
-    else:
-        raise ValueError('dataset unsupported')
+    train_dataset = FacenetDataset(config.inputSize, lines[:num_train], num_classes, random=True)
+    val_dataset = FacenetDataset(config.inputSize, lines[num_train:], num_classes, random=False)
     # 获得训练和验证数据集
     train_sampler = None
     val_sampler = None
     shuffle = True
-    batchSize = config.batchSize // 3 if config.model == 'facenet' else config.batchSize
-    collate_fn = face_dataset_collate if config.model == 'facenet' else arc_dataset_collate
+    batchSize = config.batchSize // 3
+    collate_fn = face_dataset_collate
     gen = DataLoader(train_dataset, shuffle=shuffle, batch_size=batchSize,
                      num_workers=config.numWorkers,
                      pin_memory=True,
@@ -120,7 +109,7 @@ def train(config):
 
     for epoch in range(config.startEpoch, config.endEpoch):
         set_lr(optimizer, lr_func, epoch)
-        epochTrain(config.model, model_train, model, loss_history, loss, optimizer, epoch, epoch_step, epoch_step_val,
+        epochTrain(model_train, model, loss_history, loss, optimizer, epoch, epoch_step, epoch_step_val,
                    gen, gen_val, config.endEpoch, config.batchSize // 3,
                    scaler, config.savePeriod, 'logs', flag)
     # 训练结束

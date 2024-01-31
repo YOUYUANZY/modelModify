@@ -9,18 +9,12 @@ from PIL import Image
 from torch.backends import cudnn
 
 from mtcnn import detect_faces
-from nets.arcface import Arcface
 from nets.facenet import Facenet
 from utils.utils import resize_image, preprocess_input, cvtColor
 
 
 def speedTest(config):
-    if config.model == 'facenet':
-        FR = Facenet(backbone=config.backbone, mode='predict')
-    elif config.model == 'arcface':
-        FR = Arcface(backbone=config.backbone, mode='predict')
-    else:
-        raise ValueError('modelSummary error,unsupported model')
+    FR = Facenet(backbone=config.backbone, mode='predict')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     FR.eval()
     FR.load_state_dict(torch.load(config.weightPath, map_location=device), strict=False)

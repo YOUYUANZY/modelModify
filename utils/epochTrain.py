@@ -8,7 +8,7 @@ from torch.cuda.amp import autocast
 from utils.utils import get_lr
 
 
-def epochTrain(modelType, model_train, model, loss_history, loss, optimizer, epoch, epoch_step, epoch_step_val, gen,
+def epochTrain(model_train, model, loss_history, loss, optimizer, epoch, epoch_step, epoch_step_val, gen,
                gen_val,
                endEpoch, Batch_size, scaler, save_period, save_dir, flag):
     # 三元损失
@@ -38,17 +38,10 @@ def epochTrain(modelType, model_train, model, loss_history, loss, optimizer, epo
         # 梯度归零
         optimizer.zero_grad()
         with autocast():
-            if modelType == 'facenet':
-                outputs1, outputs = model_train(images, "train")
-                _triplet_loss = loss(outputs1, Batch_size)
-                _CE_loss = nn.NLLLoss()(F.log_softmax(outputs, dim=-1), labels)
-                _loss = _triplet_loss + _CE_loss
-            elif modelType == 'arcface':
-                outputs = model_train(images, labels, mode="train")
-                _CE_loss = nn.NLLLoss()(F.log_softmax(outputs, -1), labels)
-                _loss = _CE_loss
-            else:
-                raise ValueError('modelType unsupported')
+            outputs1, outputs = model_train(images, "train")
+            _triplet_loss = loss(outputs1, Batch_size)
+            _CE_loss = nn.NLLLoss()(F.log_softmax(outputs, dim=-1), labels)
+            _loss = _triplet_loss + _CE_loss
         # 反向传播
         scaler.scale(_loss).backward()
         # 参数优化
@@ -58,23 +51,15 @@ def epochTrain(modelType, model_train, model, loss_history, loss, optimizer, epo
         with torch.no_grad():
             accuracy = torch.mean((torch.argmax(F.softmax(outputs, dim=-1), dim=-1) == labels).type(torch.FloatTensor))
 
-        if modelType == 'facenet':
-            total_triple_loss += _triplet_loss.item()
+        total_triple_loss += _triplet_loss.item()
         total_CE_loss += _CE_loss.item()
         total_accuracy += accuracy.item()
 
         if flag == 0:
-            if modelType == 'facenet':
-                pbar.set_postfix(**{'triple_loss': total_triple_loss / (iteration + 1),
-                                    'CE_loss': total_CE_loss / (iteration + 1),
-                                    'accuracy': total_accuracy / (iteration + 1),
-                                    'lr': get_lr(optimizer)})
-            elif modelType == 'arcface':
-                pbar.set_postfix(**{'CE_loss': total_CE_loss / (iteration + 1),
-                                    'accuracy': total_accuracy / (iteration + 1),
-                                    'lr': get_lr(optimizer)})
-            else:
-                raise ValueError('modelType unsupported')
+            pbar.set_postfix(**{'triple_loss': total_triple_loss / (iteration + 1),
+                                'CE_loss': total_CE_loss / (iteration + 1),
+                                'accuracy': total_accuracy / (iteration + 1),
+                                'lr': get_lr(optimizer)})
             pbar.update(1)
 
     # 开始验证
@@ -94,32 +79,21 @@ def epochTrain(modelType, model_train, model, loss_history, loss, optimizer, epo
             labels = labels.cuda(flag)
 
             optimizer.zero_grad()
-            if modelType == 'facenet':
-                outputs1, outputs = model_train(images, "train")
-                _triplet_loss = loss(outputs1, Batch_size)
-                _CE_loss = nn.NLLLoss()(F.log_softmax(outputs, dim=-1), labels)
-                _loss = _triplet_loss + _CE_loss
-            elif modelType == 'arcface':
-                outputs = model_train(images, labels, mode="train")
-                _CE_loss = nn.NLLLoss()(F.log_softmax(outputs, -1), labels)
-                _loss = _CE_loss
+            outputs1, outputs = model_train(images, "train")
+            _triplet_loss = loss(outputs1, Batch_size)
+            _CE_loss = nn.NLLLoss()(F.log_softmax(outputs, dim=-1), labels)
+            _loss = _triplet_loss + _CE_loss
 
             accuracy = torch.mean((torch.argmax(F.softmax(outputs, dim=-1), dim=-1) == labels).type(torch.FloatTensor))
-            if modelType == 'facenet':
-                val_total_triple_loss += _triplet_loss.item()
+            val_total_triple_loss += _triplet_loss.item()
             val_total_CE_loss += _CE_loss.item()
             val_total_accuracy += accuracy.item()
 
         if flag == 0:
-            if modelType == 'facenet':
-                pbar.set_postfix(**{'val_triple_loss': val_total_triple_loss / (iteration + 1),
-                                    'val_CE_loss': val_total_CE_loss / (iteration + 1),
-                                    'val_accuracy': val_total_accuracy / (iteration + 1),
-                                    'lr': get_lr(optimizer)})
-            elif modelType == 'arcface':
-                pbar.set_postfix(**{'val_CE_loss': val_total_CE_loss / (iteration + 1),
-                                    'val_accuracy': val_total_accuracy / (iteration + 1),
-                                    'lr': get_lr(optimizer)})
+            pbar.set_postfix(**{'val_triple_loss': val_total_triple_loss / (iteration + 1),
+                                'val_CE_loss': val_total_CE_loss / (iteration + 1),
+                                'val_accuracy': val_total_accuracy / (iteration + 1),
+                                'lr': get_lr(optimizer)})
             pbar.update(1)
 
     # 记录相关内容
