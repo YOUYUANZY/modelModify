@@ -23,7 +23,7 @@ def train(config):
     num_classes = get_num_classes(config.dataPath)
     # 加载模型
     if config.model == 'facenet':
-        model = Facenet(backbone=config.backbone, attention=config.attention, num_classes=num_classes)
+        model = Facenet(backbone=config.backbone, num_classes=num_classes)
     elif config.model == 'arcface':
         model = Arcface(num_classes=num_classes, backbone=config.backbone)
     else:
@@ -48,12 +48,6 @@ def train(config):
             print("\nSuccessful Load Key:", str(load_key)[:500], "……\nSuccessful Load Key Num:", len(load_key))
             print("\nFail To Load Key:", str(no_load_key)[:500], "……\nFail To Load Key num:", len(no_load_key))
             print("\n\033[1;33;44m温馨提示，head部分没有载入是正常现象，Backbone部分没有载入是错误的。\033[0m")
-
-    # 锁定权重
-    if config.onlyAttention:
-        for name, value in model.named_parameters():
-            if not name.startswith("attention"):
-                value.requires_grad = False
 
     # 获取损失函数
     loss = triplet_loss()

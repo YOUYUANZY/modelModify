@@ -7,7 +7,7 @@ from nets.arcface import Arcface
 
 def modelSummary(config):
     if config.model == 'facenet':
-        FR = Facenet(backbone=config.backbone, attention=config.attention, mode='predict')
+        FR = Facenet(backbone=config.backbone, mode='predict')
     elif config.model == 'arcface':
         FR = Arcface(backbone=config.backbone, mode='predict')
     else:

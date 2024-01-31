@@ -12,7 +12,7 @@ def evalLFW(config):
         LFWDataset(dir=config.dirPath, pairs_path=config.pairPath, image_size=config.inputSize), batch_size=config.batchSize,
         shuffle=False)
     if config.model == 'facenet':
-        model = Facenet(backbone=config.backbone, attention=config.attention, mode="predict")
+        model = Facenet(backbone=config.backbone, mode="predict")
     elif config.model == 'arcface':
         model = Arcface(backbone=config.backbone, mode="predict")
     else:

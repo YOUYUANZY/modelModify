@@ -1,5 +1,7 @@
+import torch
 from torch import nn
 from torch.nn import BatchNorm2d, Conv2d, Module, PReLU, Sequential
+from torchsummary import summary
 
 
 class Flatten(Module):
@@ -136,3 +138,11 @@ class MobileFaceNet(Module):
         x = self.features(x)
         x = self.last_bn(x)
         return x
+
+
+if __name__ == '__main__':
+    a = MobileFaceNet(128)
+    device = torch.device('cuda:0')
+    a = a.to(device)
+    a.cuda()
+    summary(a, (3, 224, 224))

@@ -1,17 +1,16 @@
 #开始参数
 start:
-  reloadData: true #重新加载数据集
-  startTrain: true #开始训练
+  reloadData: false #重新加载数据集
+  startTrain: false #开始训练
   summary: false
-  speed: false
-  evalLFW: false
+  speed: true
+  evalLFW: true
 
 LFW:
   model: facenet
-  backbone: mobilenet
-  attention:
+  backbone: mobilefacenet
   inputSize: [224,224,3]
-  weightPath: logs/facenet_orl_adam/100-l0.209-vl0.278.pth
+  weightPath: logs/facenet+mobilefacenet_orl/090-l0.013-vl0.069.pth
   dirPath: lfw
   pairPath: lfwEvalInfo/lfw_pair.txt
   batchSize: 256
@@ -20,17 +19,15 @@ LFW:
 
 speed:
   model: facenet
-  backbone: mobilenetv2
-  attention:
+  backbone: mobilefacenet
   inputSize: [224,224,3]
-  weightPath: logs/facenet+mobilenetv2_orl_adam/100-l0.066-vl0.134.pth
+  weightPath: logs/facenet+mobilefacenet_orl/090-l0.013-vl0.069.pth
   dataPath: orl
   dataType: pgm
 
 summary:
   model: arcface
   backbone: mobilefacenet
-  attention: Triplet
   input: 224 #(3,224,224)
 
 dataset:
@@ -49,9 +46,7 @@ train:
   dataPath: train_data.txt #数据及标签路径
   inputSize: [224,224,3] #facenet[224,224,3]、arcface[112,112,3]
   model: facenet #facenet、arcface
-  backbone: mobilenetv3_L #主干网络 mobilenet[v2](facenet)、mobilefacenet(arcface)
-  attention:  #注意力机制 Triplet
-  onlyAttention: false #只训练注意力
+  backbone: mobilefacenet #主干网络 mobilenet[v2](facenet)、mobilefacenet(arcface)
   weightPath: '' #模型权重路径
   batchSize: 30 #批次大小（faceNet需为3的倍数）
   startEpoch: 0 #开始轮次
