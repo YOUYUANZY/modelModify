@@ -6,8 +6,9 @@ from torchvision.models import MobileNetV2
 
 from nets.mobilefacenet_modify import MobileFaceNet
 from nets.mobilenet_v1 import MobileNetV1
-from nets.mobilenet_v1_modify import MobileNetV1_md
+from nets.mobilenetv1_1 import MobileNetV1_1
 from nets.mobilenet_v3 import MobileNetV3_Large
+from nets.mobilenetv1_2 import MobileNetV1_2
 
 
 class mobilenet(nn.Module):
@@ -24,15 +25,30 @@ class mobilenet(nn.Module):
         return x
 
 
-class mobilenet_(nn.Module):
+class mobilenetv1_1(nn.Module):
     def __init__(self):
-        super(mobilenet_, self).__init__()
-        self.model = MobileNetV1_md()
+        super(mobilenetv1_1, self).__init__()
+        self.model = MobileNetV1_1()
         del self.model.fc
         del self.model.avg
 
     def forward(self, x):
         x = self.model.stage1(x)
+        x = self.model.stage2(x)
+        x = self.model.stage3(x)
+        return x
+
+
+class mobilenetv1_2(nn.Module):
+    def __init__(self):
+        super(mobilenetv1_2, self).__init__()
+        self.model = MobileNetV1_2()
+        del self.model.fc
+        del self.model.avg
+
+    def forward(self, x):
+        x = self.model.stage1(x)
+        x = self.model.residual(x)
         x = self.model.stage2(x)
         x = self.model.stage3(x)
         return x
@@ -99,8 +115,11 @@ class Facenet(nn.Module):
         if backbone == "mobilenet":
             self.backbone = mobilenet()
             flat_shape = 1024
-        elif backbone == "mobilenet_":
-            self.backbone = mobilenet_()
+        elif backbone == "mobilenetv1_1":
+            self.backbone = mobilenetv1_1()
+            flat_shape = 1024
+        elif backbone == "mobilenetv1_2":
+            self.backbone = mobilenetv1_2()
             flat_shape = 1024
         elif backbone == "mobilenetv2":
             self.backbone = mobilenet_v2()
