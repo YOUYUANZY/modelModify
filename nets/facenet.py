@@ -47,10 +47,10 @@ class mobilenetv1_2(nn.Module):
         del self.model.avg
 
     def forward(self, x):
-        x = self.model.stage1(x)
-        x = self.model.residual(x)
-        x = self.model.stage2(x)
-        x = self.model.stage3(x)
+        x = self.model.bn1(x)
+        x = self.model.dw1(x)
+        x = self.model.pw1(x)
+        x = self.model.stage(x)
         return x
 
 
@@ -118,7 +118,7 @@ class Facenet(nn.Module):
         elif backbone == "mobilenetv1_1":
             self.backbone = mobilenetv1_1()
             flat_shape = 1024
-        elif backbone == "mobilenetv1_2":
+        elif backbone == "mobilenetv1_2_orl_0.6057":
             self.backbone = mobilenetv1_2()
             flat_shape = 1024
         elif backbone == "mobilenetv2":

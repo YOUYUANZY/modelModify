@@ -3,13 +3,13 @@ start:
   reloadData: false #重新加载数据集
   startTrain: false #开始训练
   summary: false
-  speed: false
+  speed: true
   evalLFW: true
 
 LFW:
-  backbone: mobilenetv1_2
+  backbone: mobilenetv1_2_orl_0.6057
   inputSize: [224,224,3]
-  weightPath: logs/mobilenetv1_2_orl_0.5495/090-l0.054-vl0.141.pth
+  weightPath: logs/mobilenetv1_2_orl_0.6057/080-l0.374-vl0.313.pth
   dirPath: lfw
   pairPath: lfwEvalInfo/lfw_pair.txt
   batchSize: 224
@@ -17,9 +17,9 @@ LFW:
   pngPath: lfwEvalInfo/roc_test.png
 
 speed:
-  backbone: mobilenetv1_2
+  backbone: mobilenetv1_2_orl_0.6057
   inputSize: [224,224,3]
-  weightPath: logs/mobilenetv1_2_orl_0.5495/090-l0.054-vl0.141.pth
+  weightPath: logs/mobilenetv1_2_orl_0.6057/080-l0.374-vl0.313.pth
   dataPath: orl
   dataType: pgm
 
@@ -43,7 +43,7 @@ dataset:
 train:
   dataPath: train_data.txt #数据及标签路径
   inputSize: [224,224,3] #facenet[224,224,3]
-  backbone: mobilenetv1_2 #主干网络 mobilenet[v2、v3_L]、mobilefacenet
+  backbone: mobilenetv1_2_orl_0.6057 #主干网络 mobilenet[v2、v3_L]、mobilefacenet
   weightPath: '' #模型权重路径
   batchSize: 30 #批次大小（faceNet需为3的倍数）
   startEpoch: 0 #开始轮次

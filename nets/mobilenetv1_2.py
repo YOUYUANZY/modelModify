@@ -25,7 +25,6 @@ def conv_pw(inp, oup):
     return nn.Sequential(
         nn.Conv2d(inp, oup, 1, 1, 0, bias=False),
         nn.BatchNorm2d(oup),
-        nn.ReLU6(),
     )
 
 
@@ -33,7 +32,8 @@ def conv_pw(inp, oup):
 def conv_DW(inp, oup, stride=1):
     return nn.Sequential(
         conv_dw(inp, stride),
-        conv_pw(inp, oup)
+        conv_pw(inp, oup),
+        nn.ReLU6(inplace=True)
     )
 
 
@@ -72,29 +72,32 @@ class InvertedResidual(nn.Module):
 class MobileNetV1_2(nn.Module):
     def __init__(self):
         super(MobileNetV1_2, self).__init__()
-        self.residual = InvertedResidual(128, 128, 1)
-        self.stage1 = nn.Sequential(
-            conv_bn(3, 32, 2),
-            conv_DW(32, 64, 1),
+        self.bn1 = conv_bn(3, 32, 2)
+        self.dw1 = conv_dw(32, 1)
+        self.pw1 = conv_pw(32, 16)
 
-            conv_DW(64, 128, 2),
-            # conv_DW(128, 128, 1),
-        )
-        self.stage2 = nn.Sequential(
-            conv_DW(128, 256, 2),
-            conv_DW(256, 256, 1),
-
-            conv_DW(256, 512, 2),
-            conv_DW(512, 512, 1),
-            conv_DW(512, 512, 1),
-            # conv_DW(512, 512, 1),
-            # conv_DW(512, 512, 1),
-            # conv_DW(512, 512, 1),
-        )
-        self.stage3 = nn.Sequential(
-            conv_DW(512, 1024, 2),
-            conv_1x1_bn(1024, 1024),
-        )
+        self.stage = [InvertedResidual(16, 16, 1),
+                      conv_bn(16, 32, 1),
+                      InvertedResidual(32, 32, 1),
+                      conv_bn(32, 64, 2),
+                      InvertedResidual(64, 64, 1),
+                      conv_bn(64, 64, 2),
+                      InvertedResidual(64, 64, 1),
+                      InvertedResidual(64, 64, 1),
+                      InvertedResidual(64, 64, 1),
+                      conv_bn(64, 96, 2),
+                      InvertedResidual(96, 96, 1),
+                      InvertedResidual(96, 96, 1),
+                      conv_DW(96, 128, 1),
+                      conv_DW(128, 128, 1),
+                      conv_DW(128, 256, 1),
+                      conv_DW(256, 256, 1),
+                      conv_DW(256, 512, 1),
+                      conv_DW(512, 512, 1),
+                      conv_DW(512, 1024, 2),
+                      conv_1x1_bn(1024, 1024)
+                      ]
+        self.stage = nn.Sequential(*self.stage)
 
         self.avg = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(1024, 1000)
@@ -107,12 +110,11 @@ class MobileNetV1_2(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
-        x = self.stage1(x)
-        x = self.residual(x)
-        x = self.stage2(x)
-        x = self.stage3(x)
+        x = self.bn1(x)
+        x = self.dw1(x)
+        x = self.pw1(x)
+        x = self.stage(x)
         x = self.avg(x)
-        # x = self.model(x)
         x = x.view(-1, 1024)
         x = self.fc(x)
         return x
