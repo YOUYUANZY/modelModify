@@ -4,7 +4,7 @@ from ruamel import yaml
 from eval_LFW import evalLFW
 from loadTXT import loadTXT
 from speedTest import speedTest
-from train import train
+from train import train_facenet, train_arcface
 from summary import modelSummary
 
 # import matplotlib
@@ -16,7 +16,12 @@ if __name__ == "__main__":
     if config.start.reloadData:
         loadTXT(config=config.dataset)
     if config.start.startTrain:
-        train(config=config.train)
+        if config.train.model == 'facenet':
+            train_facenet(config=config.train)
+        elif config.train.model == 'arcface':
+            train_arcface(config=config.train)
+        else:
+            raise ValueError('model error')
     if config.start.summary:
         modelSummary(config=config.summary)
     if config.start.speed:

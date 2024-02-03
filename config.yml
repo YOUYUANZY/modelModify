@@ -1,10 +1,10 @@
 #开始参数
 start:
-  reloadData: false #重新加载数据集
-  startTrain: false #开始训练
+  reloadData: true #重新加载数据集
+  startTrain: true #开始训练
   summary: false
-  speed: true
-  evalLFW: true
+  speed: false
+  evalLFW: false
 
 LFW:
   backbone: co_mobilenet
@@ -31,21 +31,24 @@ summary:
 dataset:
   locate: '' #数据集目录
   name: #数据集文件夹名字
+    - lfw
 #    - casia
-    - orl
+#    - orl
   type: #数据集数据格式
+    - jpg
 #    - bmp
-    - pgm
-  minNum: 2 #每个人最少照片数量
+#    - pgm
+  minNum: 0 #每个人最少照片数量
   maxNum: 40 #每个人最多照片数量
 
 #人脸识别训练参数
 train:
   dataPath: train_data.txt #数据及标签路径
   inputSize: [224,224,3] #facenet[224,224,3]
-  backbone: co_mobilenet #主干网络 mobilenet[v2、v3_L]、mobilefacenet
+  model: arcface
+  backbone: mobilefacenet #主干网络
   weightPath: '' #模型权重路径
-  batchSize: 30 #批次大小（faceNet需为3的倍数）
+  batchSize: 63 #批次大小（faceNet需为3的倍数）
   startEpoch: 0 #开始轮次
   endEpoch: 100 #结束轮次
   maxLR: 0.01 #模型最大学习率
