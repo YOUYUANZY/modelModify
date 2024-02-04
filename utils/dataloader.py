@@ -116,7 +116,31 @@ class FacenetDataset(Dataset):
         self.labels = np.array(self.labels)
 
 
-class arcFaceDataset(Dataset):
+# DataLoader中collate_fn使用
+# 将三张图片合为一张，便于按图片分类训练
+def dataset_collate_face(batch):
+    images = []
+    labels = []
+    for img, label in batch:
+        images.append(img)
+        labels.append(label)
+
+    images1 = np.array(images)[:, 0, :, :, :]
+    images2 = np.array(images)[:, 1, :, :, :]
+    images3 = np.array(images)[:, 2, :, :, :]
+    images = np.concatenate([images1, images2, images3], 0)
+
+    labels1 = np.array(labels)[:, 0]
+    labels2 = np.array(labels)[:, 1]
+    labels3 = np.array(labels)[:, 2]
+    labels = np.concatenate([labels1, labels2, labels3], 0)
+
+    images = torch.from_numpy(np.array(images)).type(torch.FloatTensor)
+    labels = torch.from_numpy(np.array(labels)).long()
+    return images, labels
+
+
+class ArcfaceDataset(Dataset):
     def __init__(self, input_shape, lines, random):
         self.input_shape = input_shape
         self.lines = lines
@@ -144,31 +168,7 @@ class arcFaceDataset(Dataset):
         return image, y
 
 
-# DataLoader中collate_fn使用
-# 将三张图片合为一张，便于按图片分类训练
-def face_dataset_collate(batch):
-    images = []
-    labels = []
-    for img, label in batch:
-        images.append(img)
-        labels.append(label)
-
-    images1 = np.array(images)[:, 0, :, :, :]
-    images2 = np.array(images)[:, 1, :, :, :]
-    images3 = np.array(images)[:, 2, :, :, :]
-    images = np.concatenate([images1, images2, images3], 0)
-
-    labels1 = np.array(labels)[:, 0]
-    labels2 = np.array(labels)[:, 1]
-    labels3 = np.array(labels)[:, 2]
-    labels = np.concatenate([labels1, labels2, labels3], 0)
-
-    images = torch.from_numpy(np.array(images)).type(torch.FloatTensor)
-    labels = torch.from_numpy(np.array(labels)).long()
-    return images, labels
-
-
-def arc_dataset_collate(batch):
+def dataset_collate_arc(batch):
     images = []
     targets = []
     for image, y in batch:
