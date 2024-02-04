@@ -82,4 +82,4 @@ if __name__ == '__main__':
     device = torch.device('cuda:0')
     a = a.to(device)
     a.cuda()
-    summary(a, (3, 224, 224))
+    summary(a, (3, 112, 112))

@@ -1,10 +1,9 @@
 #开始参数
 start:
-  reloadData: false #重新加载数据集
-  startTrain: false #开始训练
-  summary: false
-  speed: true
-  evalLFW: true
+  reloadData: true #重新加载数据集
+  startTrain: true #开始训练
+  speed: false
+  evalLFW: false
 
 LFW:
   model: facenet
@@ -25,19 +24,16 @@ speed:
   dataPath: orl
   dataType: pgm
 
-summary:
-  model: arcface
-  backbone: mobilefacenet
-  input: 224 #(3,224,224)
-
 dataset:
   locate: '' #数据集目录
   name: #数据集文件夹名字
-#    - casia
-    - orl
+#    - lfw
+    - casia
+#    - orl
   type: #数据集数据格式
-#    - bmp
-    - pgm
+#    - jpg
+    - bmp
+#    - pgm
   minNum: 2 #每个人最少照片数量
   maxNum: 40 #每个人最多照片数量
 
@@ -46,18 +42,18 @@ train:
   dataPath: train_data.txt #数据及标签路径
   inputSize: [224,224,3] #facenet[224,224,3]、arcface[112,112,3]
   model: facenet #facenet、arcface
-  backbone: mobilefacenet #主干网络 mobilenet[v2](facenet)、mobilefacenet(arcface)
+  backbone: mobilenet #主干网络 mobilenet[v2](facenet)、mobilefacenet(arcface)
   weightPath: '' #模型权重路径
-  batchSize: 30 #批次大小（faceNet需为3的倍数）
+  batchSize: 63 #批次大小（faceNet需为3的倍数）
   startEpoch: 0 #开始轮次
   endEpoch: 100 #结束轮次
   maxLR: 0.01 #模型最大学习率
-  minLR: 0.00001 #模型最小学习率(常为maxLR*0.01)
+  minLR: 0.0001 #模型最小学习率(常为maxLR*0.01)
 
   #学习率限制（用于自适应调整，防止学习率设置不合理）
   nbs: 64 #参照批次大小
-  maxLimitLR: 0.001 #参照最大学习率adam：0.001，sgd:0.1
-  minLimitLR: 0.0003 #参照最小学习率adam：0.0003，sgd:0.0005
+  maxLimitLR: 0.01 #参照最大学习率adam：0.001，sgd:0.1
+  minLimitLR: 0.0005 #参照最小学习率adam：0.0003，sgd:0.0005
 
   LrDecayType: cos #学习率下降方式 step、cos
   LRscheduler: #学习率下降参数
@@ -75,6 +71,6 @@ train:
   momentum: 0.9 #优化器内momentum参数
   weightDecay: 0 #权值衰减（防止过拟合）adam:0、sgd:5e-4
   savePeriod: 10 #保存训练权重间隔
-  numWorkers: 2 #多线程读取数据
+  numWorkers: 4 #多线程读取数据
   valRate: 0.1 #验证集比例
 

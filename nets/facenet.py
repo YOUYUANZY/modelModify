@@ -4,7 +4,6 @@ from torch.nn import functional as F
 from torchsummary import summary
 from torchvision.models import MobileNetV2
 
-from Attention.Triplet import Triplet
 from nets.mobilefacenet_modify import MobileFaceNet
 from nets.mobilenet_v1 import MobileNetV1
 from nets.mobilenet_v3 import MobileNetV3_Large

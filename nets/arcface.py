@@ -7,6 +7,7 @@ from torch.nn import Module, Parameter
 from torchsummary import summary
 
 from nets.mobilefacenet import MobileFaceNet
+from nets.mobilenet_v1_arc import MobileNetV1_arc
 
 
 class Arcface_Head(Module):
@@ -42,6 +43,10 @@ class Arcface(nn.Module):
             embedding_size = 128
             s = 32
             self.arcface = MobileFaceNet(embedding_size=embedding_size)
+        elif backbone == "mobilenetv1":
+            embedding_size = 128
+            s = 32
+            self.arcface = MobileNetV1_arc(embedding_size=embedding_size)
         else:
             raise ValueError('Unsupported backbone - `{}`.'.format(backbone))
 
@@ -61,10 +66,10 @@ class Arcface(nn.Module):
 
 
 if __name__ == '__main__':
-    a = Arcface(mode='predict')
+    a = Arcface(backbone='mobilenetv1',mode='predict')
     # for name, value in a.named_parameters():
     #     print(name)
     device = torch.device('cuda:0')
     a = a.to(device)
     a.cuda()
-    summary(a, (3, 112, 112))
+    summary(a, (3, 224, 224))
