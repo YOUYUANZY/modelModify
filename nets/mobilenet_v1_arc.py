@@ -83,7 +83,7 @@ class MobileNetV1_arc(nn.Module):
 
 
 if __name__ == '__main__':
-    a = MobileNetV1(128)
+    a = MobileNetV1_arc(128)
     device = torch.device('cuda:0')
     a = a.to(device)
     a.cuda()

@@ -6,6 +6,8 @@ import torch
 import torchvision.datasets as datasets
 from PIL import Image
 from torch.utils.data.dataset import Dataset
+from tqdm import tqdm
+
 from mtcnn import detect_faces
 from .utils import cvtColor, preprocess_input, resize_image
 
@@ -22,6 +24,8 @@ class FacenetDataset(Dataset):
         self.num_classes = num_classes
         self.random = random
 
+        self.images = []
+
         # 路径和标签
         self.paths = []
         self.labels = []
@@ -35,72 +39,41 @@ class FacenetDataset(Dataset):
         # 创建全为零的矩阵
         images = np.zeros((3, 3, self.input_shape[0], self.input_shape[1]))
         labels = np.zeros((3))
+        imgs = []
 
         # 先获得两张同一个人的人脸
         # 用来作为anchor和positive
         while True:
             c = random.randint(0, self.num_classes - 1)
-            selected_path = self.paths[self.labels[:] == c]
-            while len(selected_path) < 2:
-                c = random.randint(0, self.num_classes - 1)
-                selected_path = self.paths[self.labels[:] == c]
-            # 随机选择两张
-            image_indexes = np.random.choice(range(0, len(selected_path)), 2)
-            # 打开图片并放入矩阵
-            image1 = cvtColor(Image.open(selected_path[image_indexes[0]]))
-            bound1, _ = detect_faces(image1)
-            if len(bound1) == 0:
-                continue
-            image2 = cvtColor(Image.open(selected_path[image_indexes[1]]))
-            bound2, _ = detect_faces(image2)
-            if len(bound2) == 0:
-                continue
-            break
-        image1 = image1.crop((bound1[0][0], bound1[0][1], bound1[0][2], bound1[0][3]))
-        image2 = image2.crop((bound2[0][0], bound2[0][1], bound2[0][2], bound2[0][3]))
-        # 翻转图像
-        if self.rand() < .5 and self.random:
-            image1 = image1.transpose(Image.FLIP_LEFT_RIGHT)
-        image1 = resize_image(image1, [self.input_shape[1], self.input_shape[0]], letterbox_image=True)
-        image1 = preprocess_input(np.array(image1, dtype='float32'))
-        image1 = np.transpose(image1, [2, 0, 1])
-        images[0, :, :, :] = image1
-        labels[0] = c
-        # 翻转图像
-        if self.rand() < .5 and self.random:
-            image2 = image2.transpose(Image.FLIP_LEFT_RIGHT)
-        image2 = resize_image(image2, [self.input_shape[1], self.input_shape[0]], letterbox_image=True)
-        image2 = preprocess_input(np.array(image2, dtype='float32'))
-        image2 = np.transpose(image2, [2, 0, 1])
-        images[1, :, :, :] = image2
-        labels[1] = c
-
+            selected = self.images[self.labels[:] == c]
+            if len(selected) > 2:
+                break
+        image_indexes = np.random.choice(range(0, len(selected)), 2)
+        imgs.append(selected[image_indexes[0]])
+        imgs.append(selected[image_indexes[1]])
         # 取出另外一个人的人脸
         different_c = list(range(self.num_classes))
         different_c.pop(c)
         while True:
             different_c_index = np.random.choice(range(0, self.num_classes - 1), 1)
-            current_c = different_c[different_c_index[0]]
-            selected_path = self.paths[self.labels == current_c]
-            while len(selected_path) < 1:
-                different_c_index = np.random.choice(range(0, self.num_classes - 1), 1)
-                current_c = different_c[different_c_index[0]]
-                selected_path = self.paths[self.labels == current_c]
-            # 随机选择一张
-            image_indexes = np.random.choice(range(0, len(selected_path)), 1)
-            image = cvtColor(Image.open(selected_path[image_indexes[0]]))
-            bound, _ = detect_faces(image)
-            if len(bound) == 0:
+            if different_c_index == c:
                 continue
-            break
-        image = image.crop((bound[0][0], bound[0][1], bound[0][2], bound[0][3]))
-        # 翻转图像
-        if self.rand() < .5 and self.random:
-            image = image.transpose(Image.FLIP_LEFT_RIGHT)
-        image = resize_image(image, [self.input_shape[1], self.input_shape[0]], letterbox_image=True)
-        image = preprocess_input(np.array(image, dtype='float32'))
-        image = np.transpose(image, [2, 0, 1])
-        images[2, :, :, :] = image
+            current_c = different_c[different_c_index[0]]
+            selected = self.images[self.labels == current_c]
+            if len(selected) >= 1:
+                break
+        image_indexes = np.random.choice(range(0, len(selected)), 1)
+        imgs.append(selected[image_indexes[0]])
+        if self.random:
+            for i in range(3):
+                if self.rand() < .5:
+                    imgs[i] = imgs[i].transpose(Image.FLIP_LEFT_RIGHT)
+        imgs = resize_image(imgs, [self.input_shape[1], self.input_shape[0]], letterbox_image=True)
+        imgs_ = preprocess_input(imgs)
+        for i, img in enumerate(imgs_):
+            images[i, :, :, :] = np.transpose(imgs_[i], [2, 0, 1])
+        labels[0] = c
+        labels[1] = c
         labels[2] = current_c
         return images, labels
 
@@ -108,11 +81,16 @@ class FacenetDataset(Dataset):
         return np.random.rand() * (b - a) + a
 
     def load_dataset(self):
-        for path in self.lines:
+        for path in tqdm(self.lines):
             path_split = path.split(";")
-            self.paths.append(path_split[1].split()[0])
+            img = cvtColor(Image.open(path_split[1].split()[0]))
+            bound, _ = detect_faces(img)
+            if len(bound) == 0:
+                continue
+            img = img.crop((bound[0][0], bound[0][1], bound[0][2], bound[0][3]))
+            self.images.append(img)
             self.labels.append(int(path_split[0]))
-        self.paths = np.array(self.paths, dtype=np.object)
+        self.images = np.array(self.images, dtype=object)
         self.labels = np.array(self.labels)
 
 

@@ -15,20 +15,23 @@ def cvtColor(image):
 
 
 # 对输入图像进行resize
-def resize_image(image, size, letterbox_image):
-    iw, ih = image.size
-    w, h = size
-    if letterbox_image:
-        scale = min(w / iw, h / ih)
-        nw = int(iw * scale)
-        nh = int(ih * scale)
+def resize_image(images, size, letterbox_image):
+    new_images = []
+    for image in images:
+        iw, ih = image.size
+        w, h = size
+        if letterbox_image:
+            scale = min(w / iw, h / ih)
+            nw = int(iw * scale)
+            nh = int(ih * scale)
 
-        image = image.resize((nw, nh), Image.BICUBIC)
-        new_image = Image.new('RGB', size, (128, 128, 128))
-        new_image.paste(image, ((w - nw) // 2, (h - nh) // 2))
-    else:
-        new_image = image.resize((w, h), Image.BICUBIC)
-    return new_image
+            image = image.resize((nw, nh), Image.BICUBIC)
+            new_image = Image.new('RGB', size, (128, 128, 128))
+            new_image.paste(image, ((w - nw) // 2, (h - nh) // 2))
+        else:
+            new_image = image.resize((w, h), Image.BICUBIC)
+        new_images.append(new_image)
+    return new_images
 
 
 # 获取图片标签数量
@@ -50,9 +53,13 @@ def get_lr(optimizer):
 
 
 # 预处理，归一化
-def preprocess_input(image):
-    image /= 255.0
-    return image
+def preprocess_input(images):
+    new_images = []
+    for image in images:
+        image = np.array(image, dtype='float32')
+        image /= 255.0
+        new_images.append(image)
+    return new_images
 
 
 # 设置种子

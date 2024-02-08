@@ -85,6 +85,8 @@ class mobilefacenet(nn.Module):
         self.model = MobileFaceNet(128)
         del self.model.features
         del self.model.last_bn
+        del self.model.GDC_dw
+        del self.model.GDC_bn
 
     def forward(self, x):
         x = self.model.conv1(x)
@@ -100,8 +102,8 @@ class mobilefacenet(nn.Module):
         x = self.model.sep_bn(x)
         x = self.model.prelu(x)
 
-        x = self.model.GDC_dw(x)
-        x = self.model.GDC_bn(x)
+        # x = self.model.GDC_dw(x)
+        # x = self.model.GDC_bn(x)
         return x
 
 
@@ -152,7 +154,7 @@ class Facenet(nn.Module):
 
 
 if __name__ == '__main__':
-    a = Facenet(backbone='mobilenet', mode='predict')
+    a = Facenet(backbone='mobilenet', num_classes=1000)
     # for name, value in a.named_parameters():
     #     print(name)
     device = torch.device('cuda:0')
