@@ -8,7 +8,9 @@ from utils.evaluate import startEval
 
 def evalLFW(config):
     test_loader = torch.utils.data.DataLoader(
-        LFWDataset(dir=config.dirPath, pairs_path=config.pairPath, image_size=config.inputSize), batch_size=config.batchSize,
+        LFWDataset(dir=config.dirPath, pairs_path=config.pairPath, image_size=config.inputSize), pin_memory=True,
+        num_workers=2,
+        batch_size=config.batchSize,
         shuffle=False)
     model = Facenet(backbone=config.backbone, mode="predict")
     print('Loading weights into state dict...')

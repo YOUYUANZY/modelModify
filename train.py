@@ -117,12 +117,13 @@ def train(config):
                          pin_memory=True,
                          drop_last=True, collate_fn=collate_fn, sampler=val_sampler)
     # 开始训练
-
+    weightRecord = {'path': 'logs', 't_loss': 20., 'v_loss': 20., 'acc': 0.}
     for epoch in range(config.startEpoch, config.endEpoch):
         set_lr(optimizer, lr_func, epoch)
-        epochTrain(config.model, model_train, model, loss_history, loss, optimizer, epoch, epoch_step, epoch_step_val,
-                   gen, gen_val, config.endEpoch, config.batchSize // 3,
-                   scaler, config.savePeriod, 'logs', flag)
+        weightRecord = epochTrain(config.model, model_train, model, loss_history, loss, optimizer, epoch, epoch_step,
+                                  epoch_step_val,
+                                  gen, gen_val, config.endEpoch, config.batchSize // 3,
+                                  scaler, config.savePeriod, 'logs', flag, weightRecord)
     # 训练结束
     if flag == 0:
         loss_history.writer.close()

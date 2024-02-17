@@ -1,15 +1,15 @@
 #开始参数
 start:
-  reloadData: true #重新加载数据集
-  startTrain: true #开始训练
+  reloadData: false #重新加载数据集
+  startTrain: false #开始训练
   speed: false
-  evalLFW: false
+  evalLFW: true
 
 LFW:
   model: facenet
   backbone: mobilefacenet
   inputSize: [224,224,3]
-  weightPath: logs/facenet+mobilefacenet_orl/090-l0.013-vl0.069.pth
+  weightPath: logs/mobilefacenet_casia_0.594/147-l0.072-vl1.645.pth
   dirPath: lfw
   pairPath: lfwEvalInfo/lfw_pair.txt
   batchSize: 256
@@ -42,9 +42,9 @@ train:
   dataPath: train_data.txt #数据及标签路径
   inputSize: [224,224,3] #facenet[224,224,3]、arcface[112,112,3]
   model: facenet #facenet、arcface
-  backbone: mobilenet #主干网络 mobilenet[v2](facenet)、mobilefacenet(arcface)
+  backbone: mobilefacenet #主干网络 mobilenet[v2](facenet)、mobilefacenet(arcface)
   weightPath: '' #模型权重路径
-  batchSize: 60 #批次大小（faceNet需为3的倍数）
+  batchSize: 123 #批次大小（faceNet需为3的倍数）
   startEpoch: 0 #开始轮次
   endEpoch: 200 #结束轮次
   maxLR: 0.01 #模型最大学习率

@@ -109,16 +109,17 @@ class arcFaceDataset(Dataset):
     def __getitem__(self, index):
         annotation_path = self.lines[index].split(';')[1].split()[0]
         y = int(self.lines[index].split(';')[0])
+        imgs = []
 
-        image = cvtColor(Image.open(annotation_path))
+        imgs.append(cvtColor(Image.open(annotation_path)))
         # ------------------------------------------#
         #   翻转图像
         # ------------------------------------------#
         if self.rand() < .5 and self.random:
-            image = image.transpose(Image.FLIP_LEFT_RIGHT)
-        image = resize_image(image, [self.input_shape[1], self.input_shape[0]], letterbox_image=True)
+            imgs[0] = imgs[0].transpose(Image.FLIP_LEFT_RIGHT)
+        imgs = resize_image(imgs, [self.input_shape[1], self.input_shape[0]], letterbox_image=True)
 
-        image = np.transpose(preprocess_input(np.array(image, dtype='float32')), (2, 0, 1))
+        image = np.transpose(preprocess_input(np.array(imgs[0], dtype='float32')), (2, 0, 1))
         return image, y
 
 
@@ -163,7 +164,7 @@ class LFWDataset(datasets.ImageFolder):
         super(LFWDataset, self).__init__(dir, transform)
         self.image_size = image_size
         self.pairs_path = pairs_path
-        self.validation_images = self.get_lfw_paths(dir)
+        self.validation_images = self.get_lfw_imgs(dir)
 
     def read_lfw_pairs(self, pairs_filename):
         pairs = []
@@ -173,48 +174,53 @@ class LFWDataset(datasets.ImageFolder):
                 pairs.append(pair)
         return np.array(pairs)
 
-    def get_lfw_paths(self, lfw_dir, file_ext="jpg"):
+    def get_lfw_imgs(self, lfw_dir, file_ext="jpg"):
         pairs = self.read_lfw_pairs(self.pairs_path)
         nrof_skipped_pairs = 0
-        path_list = []
+        img_list = []
         issame_list = []
-        for i in range(len(pairs)):
+        for i in tqdm(range(len(pairs))):
+            img1 = None
+            img2 = None
             pair = pairs[i]
             if len(pair) == 3:
                 path0 = os.path.join(lfw_dir, pair[0], pair[0] + '_' + '%04d' % int(pair[1]) + '.' + file_ext)
+                img1 = Image.open(path0)
                 path1 = os.path.join(lfw_dir, pair[0], pair[0] + '_' + '%04d' % int(pair[2]) + '.' + file_ext)
+                img2 = Image.open(path1)
                 issame = True
             elif len(pair) == 4:
                 path0 = os.path.join(lfw_dir, pair[0], pair[0] + '_' + '%04d' % int(pair[1]) + '.' + file_ext)
+                img1 = Image.open(path0)
                 path1 = os.path.join(lfw_dir, pair[2], pair[2] + '_' + '%04d' % int(pair[3]) + '.' + file_ext)
+                img2 = Image.open(path1)
                 issame = False
+            else:
+                raise ValueError('lfw dataloader error')
             if os.path.exists(path0) and os.path.exists(path1):
-                path_list.append((path0, path1, issame))
+                bound1, _ = detect_faces(img1)
+                if len(bound1) == 0:
+                    continue
+                img1 = img1.crop((bound1[0][0], bound1[0][1], bound1[0][2], bound1[0][3]))
+                bound2, _ = detect_faces(img2)
+                if len(bound2) == 0:
+                    continue
+                img2 = img2.crop((bound2[0][0], bound2[0][1], bound2[0][2], bound2[0][3]))
+                imgs = [img1, img2]
+                imgs = resize_image(imgs, [self.image_size[1], self.image_size[0]], letterbox_image=True)
+                img_list.append((imgs, issame))
                 issame_list.append(issame)
             else:
                 nrof_skipped_pairs += 1
         if nrof_skipped_pairs > 0:
             print('Skipped %d image pairs' % nrof_skipped_pairs)
-        return path_list
+        return img_list
 
     def __getitem__(self, index):
-        (path_1, path_2, issame) = self.validation_images[index]
-        image1, image2 = Image.open(path_1), Image.open(path_2)
+        (imgs, issame) = self.validation_images[index]
 
-        bound, _ = detect_faces(image1)
-        if len(bound) == 0:
-            raise ValueError('can\'t find face in image_1')
-        image1 = image1.crop((bound[0][0], bound[0][1], bound[0][2], bound[0][3]))
-        bound, _ = detect_faces(image2)
-        if len(bound) == 0:
-            raise ValueError('can\'t find face in image_2')
-        image2 = image2.crop((bound[0][0], bound[0][1], bound[0][2], bound[0][3]))
-
-        image1 = resize_image(image1, [self.image_size[1], self.image_size[0]], letterbox_image=True)
-        image2 = resize_image(image2, [self.image_size[1], self.image_size[0]], letterbox_image=True)
-
-        image1, image2 = np.transpose(preprocess_input(np.array(image1, np.float32)), [2, 0, 1]), np.transpose(
-            preprocess_input(np.array(image2, np.float32)), [2, 0, 1])
+        image1, image2 = np.transpose(preprocess_input(np.array(imgs[0], np.float32)), [2, 0, 1]), np.transpose(
+            preprocess_input(np.array(imgs[1], np.float32)), [2, 0, 1])
 
         return image1, image2, issame
 
