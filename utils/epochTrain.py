@@ -10,7 +10,7 @@ from utils.utils import get_lr
 
 def epochTrain(modelType, model_train, model, loss_history, loss, optimizer, epoch, epoch_step, epoch_step_val, gen,
                gen_val,
-               endEpoch, Batch_size, scaler, save_period, save_dir, flag, weightRecord):
+               endEpoch, Batch_size, scaler, save_dir, flag, weightRecord):
     # 三元损失
     total_triple_loss = 0
     # 交叉熵损失
@@ -134,7 +134,7 @@ def epochTrain(modelType, model_train, model, loss_history, loss, optimizer, epo
         print('Total Loss: %.4f' % t_loss)
         removePath = None
         if epoch + 1 >= 20:
-            if t_loss <= weightRecord['t_loss'] and 0.98 > acc > 0.95:
+            if t_loss <= weightRecord['t_loss'] and 0.99 > acc > 0.95:
                 path = os.path.join(save_dir, '%03d-l%.3f-vl%.3f.pth' % ((epoch + 1), t_loss, v_loss))
                 torch.save(model.state_dict(), path)
                 removePath = weightRecord['path']
@@ -142,7 +142,7 @@ def epochTrain(modelType, model_train, model, loss_history, loss, optimizer, epo
                 weightRecord['t_loss'] = t_loss
                 weightRecord['v_loss'] = v_loss
                 weightRecord['acc'] = acc
-            elif acc > 0.98 and t_loss < 0.1 and v_loss < weightRecord['v_loss']:
+            elif acc > 0.99 and t_loss < 0.2 and v_loss < weightRecord['v_loss']:
                 path = os.path.join(save_dir, '%03d-l%.3f-vl%.3f.pth' % ((epoch + 1), t_loss, v_loss))
                 torch.save(model.state_dict(), path)
                 removePath = weightRecord['path']

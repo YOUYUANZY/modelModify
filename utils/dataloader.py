@@ -43,20 +43,22 @@ class FacenetDataset(Dataset):
 
         # 先获得两张同一个人的人脸
         # 用来作为anchor和positive
-        while True:
-            c = random.randint(0, self.num_classes - 1)
-            selected = self.images[self.labels[:] == c]
-            if len(selected) > 2:
-                break
+        selected = self.images[self.labels[:] == index]
+        if len(selected) < 2:
+            while True:
+                index = random.randint(0, self.num_classes - 1)
+                selected = self.images[self.labels[:] == index]
+                if len(selected) > 2:
+                    break
         image_indexes = np.random.choice(range(0, len(selected)), 2)
         imgs.append(selected[image_indexes[0]])
         imgs.append(selected[image_indexes[1]])
         # 取出另外一个人的人脸
         different_c = list(range(self.num_classes))
-        different_c.pop(c)
+        different_c.pop(index)
         while True:
             different_c_index = np.random.choice(range(0, self.num_classes - 1), 1)
-            if different_c_index == c:
+            if different_c_index == index:
                 continue
             current_c = different_c[different_c_index[0]]
             selected = self.images[self.labels == current_c]
@@ -72,8 +74,8 @@ class FacenetDataset(Dataset):
         imgs_ = preprocess_input(imgs)
         for i, img in enumerate(imgs_):
             images[i, :, :, :] = np.transpose(imgs_[i], [2, 0, 1])
-        labels[0] = c
-        labels[1] = c
+        labels[0] = index
+        labels[1] = index
         labels[2] = current_c
         return images, labels
 

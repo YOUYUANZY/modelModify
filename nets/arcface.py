@@ -9,6 +9,8 @@ from torchsummary import summary
 from nets.mobilefacenet import MobileFaceNet
 from nets.mobilenet_v1_arc import MobileNetV1_arc
 
+from nets.mobilenetv1_1_arc import MobileNetV1_1_arc
+
 
 class Arcface_Head(Module):
     def __init__(self, embedding_size=128, num_classes=10575, s=64., m=0.5):
@@ -37,16 +39,20 @@ class Arcface_Head(Module):
 
 
 class Arcface(nn.Module):
-    def __init__(self, num_classes=None, backbone="mobilefacenet", mode="train"):
+    def __init__(self, num_classes=None, backbone="mf", mode="train"):
         super(Arcface, self).__init__()
-        if backbone == "mobilefacenet":
+        if backbone == "mf":
             embedding_size = 128
             s = 32
             self.arcface = MobileFaceNet(embedding_size=embedding_size)
-        elif backbone == "mobilenetv1":
+        elif backbone == "m":
             embedding_size = 128
             s = 32
             self.arcface = MobileNetV1_arc(embedding_size=embedding_size)
+        elif backbone == "v1_1":
+            embedding_size = 128
+            s = 32
+            self.arcface = MobileNetV1_1_arc(embedding_size=embedding_size)
         else:
             raise ValueError('Unsupported backbone - `{}`.'.format(backbone))
 

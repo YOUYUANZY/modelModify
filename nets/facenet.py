@@ -2,13 +2,12 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from torchsummary import summary
-from torchvision.models import MobileNetV2
 
 from nets.co_mobilenet import Co_MobileNet
 from nets.mobilefacenet_modify import MobileFaceNet
 from nets.mobilenet_v1 import MobileNetV1
+from nets.mobilenet_v2 import MobileNetV2
 from nets.mobilenetv1_1 import MobileNetV1_1
-from nets.mobilenetv1_2 import MobileNetV1_2
 
 
 class mobilenet(nn.Module):
@@ -36,21 +35,6 @@ class mobilenetv1_1(nn.Module):
         x = self.model.stage1(x)
         x = self.model.stage2(x)
         x = self.model.stage3(x)
-        return x
-
-
-class mobilenetv1_2(nn.Module):
-    def __init__(self):
-        super(mobilenetv1_2, self).__init__()
-        self.model = MobileNetV1_2()
-        del self.model.fc
-        del self.model.avg
-
-    def forward(self, x):
-        x = self.model.bn1(x)
-        x = self.model.dw1(x)
-        x = self.model.pw1(x)
-        x = self.model.stage(x)
         return x
 
 
@@ -111,22 +95,19 @@ class Facenet(nn.Module):
     def __init__(self, backbone="mobilenet", dropout_keep_prob=0.5, embedding_size=128,
                  num_classes=None, mode="train"):
         super(Facenet, self).__init__()
-        if backbone == "mobilenet":
+        if backbone == "m":
             self.backbone = mobilenet()
             flat_shape = 1024
-        elif backbone == "mobilenetv1_1":
+        elif backbone == "v1_1":
             self.backbone = mobilenetv1_1()
             flat_shape = 1024
-        elif backbone == "mobilenetv1_2":
-            self.backbone = mobilenetv1_2()
-            flat_shape = 1024
-        elif backbone == "co_mobilenet":
+        elif backbone == "co_m":
             self.backbone = co_mobilenet()
             flat_shape = 512
-        elif backbone == "mobilenetv2":
+        elif backbone == "v2":
             self.backbone = mobilenet_v2()
             flat_shape = 1280
-        elif backbone == "mobilefacenet":
+        elif backbone == "mf":
             self.backbone = mobilefacenet()
             flat_shape = 512
         else:

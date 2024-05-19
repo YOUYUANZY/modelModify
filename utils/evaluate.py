@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import torch
 from scipy import interpolate
@@ -145,6 +147,14 @@ def startEval(test_loader, model, png_save_path, log_interval, batch_size):
     print('Accuracy: %2.5f+-%2.5f' % (np.mean(accuracy), np.std(accuracy)))
     print('Best_thresholds: %2.5f' % best_thresholds)
     print('Validation rate: %2.5f+-%2.5f @ FAR=%2.5f' % (val, val_std, far))
+    with open(os.path.join("tpr.txt"), 'a') as f:
+        for a in tpr:
+            f.write(str(a))
+            f.write("\n")
+    with open(os.path.join("fpr.txt"), 'a') as f:
+        for b in fpr:
+            f.write(str(b))
+            f.write("\n")
     # 画roc图
     plot_roc(fpr, tpr, figure_name=png_save_path)
 

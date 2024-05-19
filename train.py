@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
+import pandas as pd
 from torch.utils.data import DataLoader
 from torch.cuda.amp import GradScaler as GradScaler
 from nets.arcface import Arcface
@@ -110,11 +111,11 @@ def train(config):
     collate_fn = face_dataset_collate if config.model == 'facenet' else arc_dataset_collate
     gen = DataLoader(train_dataset, shuffle=shuffle, batch_size=batchSize,
                      num_workers=config.numWorkers,
-                     pin_memory=True,
+                     pin_memory=False,
                      drop_last=True, collate_fn=collate_fn, sampler=train_sampler)
     gen_val = DataLoader(val_dataset, shuffle=shuffle, batch_size=batchSize,
                          num_workers=config.numWorkers,
-                         pin_memory=True,
+                         pin_memory=False,
                          drop_last=True, collate_fn=collate_fn, sampler=val_sampler)
     # 开始训练
     weightRecord = {'path': 'logs', 't_loss': 20., 'v_loss': 20., 'acc': 0.}
@@ -123,7 +124,15 @@ def train(config):
         weightRecord = epochTrain(config.model, model_train, model, loss_history, loss, optimizer, epoch, epoch_step,
                                   epoch_step_val,
                                   gen, gen_val, config.endEpoch, config.batchSize // 3,
-                                  scaler, config.savePeriod, 'logs', flag, weightRecord)
+                                  scaler, 'logs', flag, weightRecord)
     # 训练结束
     if flag == 0:
         loss_history.writer.close()
+        head1 = config.backbone + '_train'
+        head2 = config.backbone + '_val'
+        data1 = pd.read_csv('trainLog/train_loss.csv')
+        data2 = pd.read_csv('trainLog/val_loss.csv')
+        data1[head1] = loss_history.losses
+        data2[head2] = loss_history.val_loss
+        data1.to_csv('trainLog/train_loss.csv', index=False)
+        data2.to_csv('trainLog/val_loss.csv', index=False)

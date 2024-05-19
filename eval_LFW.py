@@ -1,6 +1,7 @@
 import torch
 import torch.backends.cudnn as cudnn
 
+from nets.arcface import Arcface
 from nets.facenet import Facenet
 from utils.dataloader import LFWDataset
 from utils.evaluate import startEval
@@ -12,7 +13,10 @@ def evalLFW(config):
         num_workers=2,
         batch_size=config.batchSize,
         shuffle=False)
-    model = Facenet(backbone=config.backbone, mode="predict")
+    if config.model == 'facenet':
+        model = Facenet(backbone=config.backbone, mode="predict")
+    elif config.model == 'arcface':
+        model = Arcface(backbone=config.backbone, mode='predict')
     print('Loading weights into state dict...')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.eval()

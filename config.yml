@@ -7,9 +7,9 @@ start:
 
 LFW:
   model: facenet
-  backbone: mobilefacenet
+  backbone: mf
   inputSize: [224,224,3]
-  weightPath: logs/mobilefacenet_casia_0.594/147-l0.072-vl1.645.pth
+  weightPath: logs/mobilefacenet_pose+casia_0.639/083-l0.131-vl0.177.pth
   dirPath: lfw
   pairPath: lfwEvalInfo/lfw_pair.txt
   batchSize: 256
@@ -17,8 +17,8 @@ LFW:
   pngPath: lfwEvalInfo/roc_test.png
 
 speed:
-  model: facenet
-  backbone: mobilefacenet
+  model: arcface
+  backbone: mf
   inputSize: [224,224,3]
   weightPath: logs/facenet+mobilefacenet_orl/090-l0.013-vl0.069.pth
   dataPath: orl
@@ -27,33 +27,35 @@ speed:
 dataset:
   locate: '' #数据集目录
   name: #数据集文件夹名字
-#    - lfw
+    - lfw
+    - pose
     - casia
-#    - orl
+    - orl
   type: #数据集数据格式
-#    - jpg
+    - jpg
+    - tif
     - bmp
-#    - pgm
-  minNum: 1 #每个人最少照片数量
+    - pgm
+  minNum: 2 #每个人最少照片数量
   maxNum: 40 #每个人最多照片数量
 
 #人脸识别训练参数
 train:
   dataPath: train_data.txt #数据及标签路径
-  inputSize: [224,224,3] #facenet[224,224,3]、arcface[112,112,3]
-  model: facenet #facenet、arcface
-  backbone: mobilefacenet #主干网络 mobilenet[v2](facenet)、mobilefacenet(arcface)
+  inputSize: [112,112,3] #facenet[224,224,3]、arcface[112,112,3]
+  model: arcface #facenet、arcface
+  backbone: mf #主干网络 mobilenet[v2](facenet)、mobilefacenet(arcface)
   weightPath: '' #模型权重路径
-  batchSize: 123 #批次大小（faceNet需为3的倍数）
+  batchSize: 128 #批次大小（faceNet需为3的倍数）
   startEpoch: 0 #开始轮次
-  endEpoch: 200 #结束轮次
+  endEpoch: 80 #结束轮次
   maxLR: 0.01 #模型最大学习率
   minLR: 0.0001 #模型最小学习率(常为maxLR*0.01)
 
   #学习率限制（用于自适应调整，防止学习率设置不合理）
   nbs: 64 #参照批次大小
-  maxLimitLR: 0.1 #参照最大学习率adam：0.001，sgd:0.1
-  minLimitLR: 0.0005 #参照最小学习率adam：0.0003，sgd:0.0005
+  maxLimitLR: 0.001 #参照最大学习率adam：0.001，sgd:0.1
+  minLimitLR: 0.0003 #参照最小学习率adam：0.0003，sgd:0.0005
 
   LrDecayType: cos #学习率下降方式 step、cos
   LRscheduler: #学习率下降参数
@@ -67,10 +69,9 @@ train:
     step:
       stepNum: 10 #步降学习率次数
 
-  optimizer: 'sgd' #优化器种类 adam、sgd 建议maxLR:1e-3、le-2
+  optimizer: 'adam' #优化器种类 adam、sgd 建议maxLR:1e-3、le-2
   momentum: 0.9 #优化器内momentum参数
-  weightDecay: 0.0005 #权值衰减（防止过拟合）adam:0、sgd:5e-4
-  savePeriod: 10 #保存训练权重间隔
-  numWorkers: 4 #多线程读取数据
+  weightDecay: 0 #权值衰减（防止过拟合）adam:0、sgd:5e-4
+  numWorkers: 0 #多线程读取数据
   valRate: 0.1 #验证集比例
 
